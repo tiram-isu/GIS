@@ -1,0 +1,19 @@
+P {
+    background-color:black;
+    text-align: left;
+}
+
+html {
+    background-color: #272727;
+}
+
+body {
+    color: aliceblue;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.some_element {
+    background-color: gold;
+    min-width: 100px;
+    min-height: 50px;
+}
