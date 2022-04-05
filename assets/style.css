@@ -1,5 +1,9 @@
+:root {
+    --hintergrund: rgb(25, 25, 26);
+}
+
 P {
-    background-color:black;
+    background-color: var(--hintergrund);
     text-align: left;
 }
 
@@ -12,8 +16,64 @@ body {
     font-family: 'Open Sans', sans-serif;
 }
 
-.some_element {
-    background-color: gold;
+@media (max-width: 50em) {
+    body {
+      background-color: rgb(231, 231, 231);
+      color: rgb(0, 0, 0);
+      font-family: 'Open Sans', sans-serif;
+    }
+    div {
+      display: inline;
+    }
+  }
+
+#some_element {
+    background-color: rgb(200, 155, 50, 0.5);
     min-width: 100px;
     min-height: 50px;
+    background-image: linear-gradient(
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.3)
+    );
+    transform: scale(0.9);
+}
+
+a, #link {
+    position: relative;
+    font: Courier;
+    font: 14px Courier;
+    text-decoration: none;
+    color: white;
+    padding: 0mm 10mm 0mm 3mm;
+}
+
+ul, .test {
+    font-style: italic;
+}
+
+ul::first-letter {
+    color: red;
+}
+
+tr {
+    transition: background-color 1s;
+}
+
+tr:nth-of-type(2n) {
+    background-color: rgb(56, 56, 56);
+}
+
+tr:hover {
+    background-color: rgb(102, 102, 102)
+}
+
+  
+table.box {
+    position: relative;
+    height: 40px;
+    border: 2px solid var(--hintergrund);
+    padding: 10px 10px 10px 10px;
+    margin: 20px 20px 20px 20px;
+    overflow: hidden;
 }
