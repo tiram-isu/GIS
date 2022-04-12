@@ -27,7 +27,7 @@ body {
     }
   }
 
-#some_element {
+#some-element {
     background-color: rgb(200, 155, 50, 0.5);
     min-width: 100px;
     min-height: 50px;
