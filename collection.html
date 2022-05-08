@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Karteikarten-Trainer" />
+    <meta name="author" content="Marit Zenker" />
+    <title>Karteikarten-Trainer</title>
+    <link rel="stylesheet" href="./assets/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+</head>
+
+<nav>
+    <script id="replace_with_navbar" src="navigation.js"></script>
+</nav>
+
+<body>
+    <br>
+    <h1>Sammlungen</h1>
+
+    <div id="collectionContainer">Keine Sammlungen vorhanden
+    </div>
+
+    <input id="collectionName" type="text" placeholder="Name Sammlung">
+
+    <br>
+
+    <div id="formContainer">
+        <input id="submit" type="button" value="Sammlung erstellen" onClick="addCollection()">
+        <br>
+    </div>
+</body>

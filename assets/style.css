@@ -1,79 +1,119 @@
 :root {
-    --hintergrund: rgb(25, 25, 26);
+    --background: #111111;
+    --dark-grey: #1b1b1b;
+    --accent: #2b2356;
+    --middle-grey: #303030;
+    --light-grey: #3a3a3a;
+    --text: #efece7;
 }
 
 P {
-    background-color: var(--hintergrund);
     text-align: left;
 }
 
 html {
-    background-color: #272727;
-}
-
-body {
-    color: aliceblue;
+    background-color: var(--background);
+    color: var(--text);
     font-family: 'Open Sans', sans-serif;
 }
 
-@media (max-width: 50em) {
-    body {
-      background-color: rgb(231, 231, 231);
-      color: rgb(0, 0, 0);
-      font-family: 'Open Sans', sans-serif;
-    }
-    div {
-      display: inline;
-    }
-  }
-
-#some-element {
-    background-color: rgb(200, 155, 50, 0.5);
-    min-width: 100px;
-    min-height: 50px;
-    background-image: linear-gradient(
-    rgba(255, 255, 255, 0.3),
-    rgba(255, 255, 255, 0),
-    rgba(255, 255, 255, 0.3)
-    );
-    transform: scale(0.9);
-}
-
-a, #link {
-    position: relative;
-    font: Courier;
-    font: 14px Courier;
-    text-decoration: none;
-    color: white;
-    padding: 0mm 10mm 0mm 3mm;
-}
-
-ul, .test {
-    font-style: italic;
-}
-
-ul::first-letter {
-    color: red;
-}
-
-tr {
-    transition: background-color 1s;
-}
-
-tr:nth-of-type(2n) {
-    background-color: rgb(56, 56, 56);
-}
-
-tr:hover {
-    background-color: rgb(102, 102, 102)
-}
-
-  
-table.box {
-    position: relative;
-    height: 40px;
-    border: 2px solid var(--hintergrund);
-    padding: 10px 10px 10px 10px;
-    margin: 20px 20px 20px 20px;
+#navigation {
     overflow: hidden;
+    justify-content: center;
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%);
+    width: 100vw;
+    height: 40px;
+    list-style-type: none;
+    background-color: var(--dark-grey);
+}
+
+#nav-element {
+    float: left;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    color: var(--text);
+    padding: 14px 16px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+
+a:hover#nav-element {
+    background-color: var(--accent);
+}
+
+div#flashcardContainer {
+    margin-left: auto;
+    margin-right: auto;
+    width: 24vw;
+    height: 24vh;
+    background-color: var(--light-grey);
+}
+
+.flashcard {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#flashcardTitle {
+    background-color: var(--middle-grey);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+div#formContainer {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+form#cardForm {
+    text-align: center;
+}
+
+button, #submit {
+    background-color: var(--accent);
+    border: none;
+    color: var(--text);
+    padding: 8px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+#submit:hover, button:hover {
+    background-color: var(--light-grey);
+}
+
+#previous { 
+    width: 150px; 
+    height: 40px;
+    position: fixed;
+    left: 19vw;
+    transform: translate(-50%, -30%);
+}
+
+#next {
+    width: 150px; 
+    height: 40px;
+    position: fixed;
+    left: 81vw;
+    transform: translate(-50%, -30%);
+}
+
+#position {
+    position: fixed;
+    left: 50vw;
+    transform: translate(-50%);
+}
+
+#delete {
+    position: fixed;
+    left: 50vw;
+    transform: translate(-50%, +150%);
 }

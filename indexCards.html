@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Karteikarten" />
+    <meta name="author" content="Marit Zenker" />
+    <link rel="stylesheet" href="./assets/style.css">
+    <title>Neue Karteikarte</title>
+    <script src="script.js" defer></script>
+</head>
+
+<nav>
+    <script id="replace_with_navbar" src="navigation.js"></script>
+</nav>
+
+<body onLoad="fillFlashcards()">
+   <div id="flashcardContainer">
+        <p class="flashcard" id="flashcardTitle">Vorderseite</p>
+        <p class="flashcard" id="front"></p>
+    </div>
+
+    <div id = "buttons">
+        <button id="previous" onclick="previousCard()">Vorherige Karte</button>
+        <button id="next" onclick="nextCard()">Nächste Karte</button>
+    </div>
+
+    <div id="flashcardContainer">
+        <p class="flashcard" id="flashcardTitle">Rückseite</p>
+        <p class="flashcard" id="back"></p>
+    </div>
+
+    <p id="position"></p>
+
+    <button id="delete" onclick="deleteCard()">Karte löschen</button>
+    
+</body>
