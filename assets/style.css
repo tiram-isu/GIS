@@ -60,7 +60,8 @@ div#flashcardContainer {
     vertical-align: middle;
 }
 
-#flashcardTitle {
+.flashcardTitle {
+    text-align: center;
     background-color: var(--middle-grey);
     padding-top: 5px;
     padding-bottom: 5px;
@@ -75,7 +76,7 @@ form#cardForm {
     text-align: center;
 }
 
-button, #submit {
+button, #submit, .dropdown {
     background-color: var(--accent);
     border: none;
     color: var(--text);
@@ -106,6 +107,14 @@ button, #submit {
     transform: translate(-50%, -30%);
 }
 
+#flip {
+    width: 150px; 
+    height: 40px;
+    position: fixed;
+    left: 50vw;
+    transform: translate(-50%, +150%);
+}
+
 #position {
     position: fixed;
     left: 50vw;
@@ -113,7 +122,28 @@ button, #submit {
 }
 
 #delete {
+    width: 150px; 
+    height: 40px;
     position: fixed;
     left: 50vw;
-    transform: translate(-50%, +150%);
+    transform: translate(-50%, +300%);
+}
+
+.hide {
+    max-height: 0 !important;
+}
+
+.dropdown .menu{
+	transition: max-height .5s ease-out;
+	max-height: 20em;
+	overflow: hidden;
+}
+
+
+.dropdown .menu .option:hover{
+	background-color: var(--light-grey);
+}
+
+.pointerCursor:hover{
+	cursor: pointer;
 }

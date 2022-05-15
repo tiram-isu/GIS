@@ -16,23 +16,29 @@
 </nav>
 
 <body onLoad="fillFlashcards()">
-   <div id="flashcardContainer">
-        <p class="flashcard" id="flashcardTitle">Vorderseite</p>
+    <br>
+
+    <div class="dropdown">
+		<div class="title pointerCursor">Sammlungen</div>
+		<div class="menu pointerCursor hide" id="dropdown-content"></div>
+	</div>
+
+    <div id="flashcardContainer">
+        <p class="flashcardTitle" id="titleFront">Vorderseite</p>
         <p class="flashcard" id="front"></p>
     </div>
 
-    <div id = "buttons">
+    <div id="buttons">
         <button id="previous" onclick="previousCard()">Vorherige Karte</button>
         <button id="next" onclick="nextCard()">Nächste Karte</button>
     </div>
 
-    <div id="flashcardContainer">
-        <p class="flashcard" id="flashcardTitle">Rückseite</p>
-        <p class="flashcard" id="back"></p>
+    <div id="buttons">
+        <button id="flip" onclick="flip()">Umdrehen</button>
     </div>
 
     <p id="position"></p>
 
     <button id="delete" onclick="deleteCard()">Karte löschen</button>
-    
+
 </body>
