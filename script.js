@@ -1,3 +1,8 @@
+const front = document.getElementById("front");
+const back = document.getElementById("back");
+let cardIndex;
+let groupIndex;
+
 class Card {
     constructor(front, back) {
         this.front = front;
@@ -5,28 +10,24 @@ class Card {
     }
 }
 
-const front = document.getElementById("front");
-const back = document.getElementById("back");
-let cardIndex;
-
 // eslint-disable-next-line no-unused-vars
 function addCard() {
     const groupSelected = getOrCreateGroupSelected();
+    const groupsLocalStorage = getOrCreateGroups();
     const inputFront = document.getElementById("newFront").value;
     const inputBack = document.getElementById("newBack").value;
+    groupIndex = getGroupIndex();
 
     if (groupSelected == "") {
         document.getElementById("error").innerHTML = "Es muss eine Sammlung ausgewählt werden.";
     } else if (inputFront != "" && inputBack != "") {
-
         const newCard = new Card();
         newCard.front = inputFront;
         newCard.back = inputBack;
 
-        const collectionLocalStorage = getOrCreateCollection();
-        collectionLocalStorage.push(newCard);
-        localStorage.coll = JSON.stringify(collectionLocalStorage);
-        localStorage.index = JSON.stringify(collectionLocalStorage.length - 1);
+        groupsLocalStorage[groupIndex].push(newCard);
+        localStorage.groups = JSON.stringify(groupsLocalStorage);
+        localStorage.index = JSON.stringify(groupsLocalStorage[groupIndex].length - 1);
 
         front.innerHTML = newCard.front;
         back.innerHTML = newCard.back;
@@ -37,21 +38,36 @@ function addCard() {
 }
 
 // flashcards
-// eslint-disable-next-line no-unused-vars
 function fillFlashcards() {
     if (localStorage.getItem("index") !== "undefined" &&
         localStorage.getItem("index") !== null) {
         cardIndex = JSON.parse(localStorage.index);
-        const collectionLocalStorage = getOrCreateCollection();
+        const groupsLocalStorage = getOrCreateGroups();
+        const groupIndex = localStorage.groupIndex;
 
-        if (collectionLocalStorage.length !== 0) {
-            front.innerHTML = collectionLocalStorage[cardIndex].front;
+
+        if (groupsLocalStorage.length !== 0 && groupsLocalStorage[groupIndex].length >= 1) {
+            front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
         }
 
         fillPosition();
     }
 
     createGroupsDropdown();
+}
+
+function fillPosition() {
+    const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
+    cardIndex = JSON.parse(localStorage.index) + 1;
+
+    if (groupsLocalStorage[groupIndex].length > 0 && document.getElementById("position") != null) {
+        document.getElementById("position").innerHTML = (cardIndex - 1) +
+            "/" + (groupsLocalStorage[groupIndex].length - 1);
+    } else if (groupsLocalStorage[groupIndex] === 0) {
+        document.getElementById("position").innerHTML = 0 +
+            "/" + 0;
+    }
 }
 
 function createGroupsDropdown() {
@@ -68,22 +84,23 @@ function createGroupsDropdown() {
         const groupsDropdown = document.createElement("div");
         groupsDropdown.classList.add("option");
         groupsDropdown.addEventListener("click", handleOptionSelected);
-        groupsDropdown.innerHTML = groupsLocalStorage[i];
+        groupsDropdown.innerHTML = groupsLocalStorage[i][0];
         document.getElementById("dropdown-content").appendChild(groupsDropdown);
     }
 }
 
 // eslint-disable-next-line no-unused-vars
 function previousCard() {
-    const collectionLocalStorage = getOrCreateCollection();
+    const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index) - 1;
 
-    if (cardIndex < 0) {
-        cardIndex = collectionLocalStorage.length - 1;
+    if (cardIndex < 1) {
+        cardIndex = groupsLocalStorage[groupIndex].length - 1;
     }
 
-    if (cardIndex >= 0 && cardIndex < collectionLocalStorage.length) {
-        front.innerHTML = collectionLocalStorage[cardIndex].front;
+    if (cardIndex >= 1 && cardIndex < groupsLocalStorage[groupIndex].length) {
+        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
     }
 
     localStorage.index = JSON.stringify(cardIndex);
@@ -92,15 +109,16 @@ function previousCard() {
 
 // eslint-disable-next-line no-unused-vars
 function nextCard() {
-    const collectionLocalStorage = getOrCreateCollection();
+    const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index) + 1;
 
-    if (cardIndex >= collectionLocalStorage.length) {
-        cardIndex = 0;
+    if (cardIndex > groupsLocalStorage[groupIndex].length - 1) {
+        cardIndex = 1;
     }
 
-    if (cardIndex >= 0 && cardIndex < collectionLocalStorage.length) {
-        front.innerHTML = collectionLocalStorage[cardIndex].front;
+    if (cardIndex >= 1 && cardIndex <= groupsLocalStorage[groupIndex].length) {
+        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
     }
 
     localStorage.index = JSON.stringify(cardIndex);
@@ -109,63 +127,60 @@ function nextCard() {
 
 // eslint-disable-next-line no-unused-vars
 function flip() {
-    const collectionLocalStorage = getOrCreateCollection();
-    const titleFront = document.getElementById("titleFront");
+    const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index);
+    const titleFront = document.getElementById("titleFront");
 
     if (titleFront.innerHTML === "Vorderseite") {
         document.getElementById("titleFront").innerHTML = "Rückseite";
-        front.innerHTML = collectionLocalStorage[cardIndex].back;
+        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].back;
         return;
     }
 
     if (titleFront.innerHTML === "Rückseite") {
         document.getElementById("titleFront").innerHTML = "Vorderseite";
-        front.innerHTML = collectionLocalStorage[cardIndex].front;
+        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
         return;
     }
 }
 
 // eslint-disable-next-line no-unused-vars
 function deleteCard() {
-    const collectionLocalStorage = getOrCreateCollection();
+    const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index);
 
-    collectionLocalStorage.splice(cardIndex, 1);
+    if (cardIndex >= 1) {
+        groupsLocalStorage[groupIndex].splice(cardIndex, 1);
 
-    if (cardIndex >= collectionLocalStorage.length) {
-        cardIndex = collectionLocalStorage.length - 1;
-    }
+        if (cardIndex >= groupsLocalStorage[groupIndex].length) {
+            cardIndex = groupsLocalStorage[groupIndex].length - 1;
+        }
 
-    if (cardIndex >= 0 && cardIndex < collectionLocalStorage.length) {
-        front.innerHTML = collectionLocalStorage[cardIndex].front;
-    }
+        if (cardIndex >= 0 && cardIndex < groupsLocalStorage[groupIndex].length) {
+            front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
+        }
 
-    if (collectionLocalStorage.length == 0) {
-        front.innerHTML = "";
-    }
+        if (groupsLocalStorage[groupIndex].length <= 1) {
+            front.innerHTML = "";
+        }
 
-    localStorage.coll = JSON.stringify(collectionLocalStorage);
-    localStorage.index = JSON.stringify(cardIndex);
-    fillPosition();
-}
+        localStorage.groups = JSON.stringify(groupsLocalStorage);
+        localStorage.index = JSON.stringify(groupsLocalStorage[groupIndex].length - 1);
 
-function fillPosition() {
-    const collectionLocalStorage = getOrCreateCollection();
-    cardIndex = JSON.parse(localStorage.index) + 1;
-
-    if (collectionLocalStorage.length > 0 && document.getElementById("position") != null) {
-        document.getElementById("position").innerHTML = cardIndex +
-            "/" + collectionLocalStorage.length;
-    } else if (collectionLocalStorage.length === 0) {
-        document.getElementById("position").innerHTML = 0 +
-            "/" + 0;
+        fillPosition();
     }
 }
 
 // groups
 // eslint-disable-next-line no-unused-vars
 function fillGroups() {
+    const toDelete = document.querySelectorAll(".groupId");
+    toDelete.forEach((groupId) => {
+        groupId.remove();
+    });
+
     const groupsLocalStorage = getOrCreateGroups();
     if (groupsLocalStorage.length !== 0) {
         document.getElementById("collectionContainer").innerHTML = "";
@@ -173,11 +188,14 @@ function fillGroups() {
 
     for (i = 0; i < groupsLocalStorage.length; i++) {
         const groupsButton = document.createElement("button");
-        groupsButton.innerHTML = groupsLocalStorage[i];
+        groupsButton.innerHTML = groupsLocalStorage[i][0];
+        groupsButton.classList.add("groupId");
         groupsButton.onclick = function() {
             // window.location.href = "indexCards.html";
             console.log(groupsButton.innerHTML);
+            console.log(groupsButton.id);
         };
+
         document.body.appendChild(groupsButton);
     }
 }
@@ -190,30 +208,16 @@ function addGroup() {
     if (groupName !== "") {
         groupsLocalStorage.push([groupName]);
         console.log(groupsLocalStorage);
-        // groupsLocalStorage.push(groupName);
 
-        // const groupsButton = document.createElement("button");
-        // groupsButton.innerHTML = groupName;
-        // groupsButton.onclick = test();
-        // document.body.appendChild(groupsButton);
-        // localStorage.groups = JSON.stringify(groupsLocalStorage);
+        localStorage.groups = JSON.stringify(groupsLocalStorage);
 
-        // document.getElementById("collectionContainer").innerHTML = "";
+        console.log(localStorage.groups);
+        console.log(JSON.parse(localStorage.groups));
+
+        document.getElementById("collectionContainer").innerHTML = "";
+
+        fillGroups();
     }
-}
-
-function test() {
-    console.log("help");
-}
-
-function getOrCreateCollection() {
-    let collectionLocalStorage;
-    if (localStorage.getItem("coll") == undefined) {
-        collectionLocalStorage = [];
-    } else {
-        collectionLocalStorage = JSON.parse(localStorage.coll);
-    }
-    return collectionLocalStorage;
 }
 
 function getOrCreateGroups() {
@@ -233,7 +237,19 @@ function getOrCreateGroupSelected() {
     } else {
         groupSelected = localStorage.groupSelected;
     }
-    return groupSelected;
+    return groupSelected.substring(0, groupSelected.length - 1);
+}
+
+function getGroupIndex() {
+    const groupSelected = getOrCreateGroupSelected();
+    const groupsLocalStorage = getOrCreateGroups();
+
+    for (i = 0; i < groupsLocalStorage.length; i++) {
+        if (groupsLocalStorage[i][0] == groupSelected) {
+            localStorage.groupIndex = i;
+            return i;
+        }
+    }
 }
 
 // dropdown menu
@@ -263,7 +279,7 @@ function handleOptionSelected(e) {
 
     localStorage.groupSelected = newValue;
 
-    console.log("test");
+    fillFlashcards();
 }
 
 
