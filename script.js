@@ -41,18 +41,23 @@ function addCard() {
 function fillFlashcards() {
     if (localStorage.getItem("index") !== "undefined" &&
         localStorage.getItem("index") !== null) {
-        cardIndex = JSON.parse(localStorage.index);
         const groupsLocalStorage = getOrCreateGroups();
-        const groupIndex = localStorage.groupIndex;
+        groupIndex = getGroupIndex();
+        cardIndex = getCardIndex();
 
-
-        if (groupsLocalStorage.length !== 0 && groupsLocalStorage[groupIndex].length >= 1) {
+        if (groupsLocalStorage.length !== 0 && groupsLocalStorage[groupIndex].length > 1) {
             front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
+        } else {
+            front.innerHTML = "";
         }
 
         fillPosition();
     }
+}
 
+// eslint-disable-next-line no-unused-vars
+function flashcardsDropdown() {
+    fillFlashcards();
     createGroupsDropdown();
 }
 
@@ -61,10 +66,10 @@ function fillPosition() {
     groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index) + 1;
 
-    if (groupsLocalStorage[groupIndex].length > 0 && document.getElementById("position") != null) {
+    if (groupsLocalStorage[groupIndex].length > 1 && document.getElementById("position") != null) {
         document.getElementById("position").innerHTML = (cardIndex - 1) +
             "/" + (groupsLocalStorage[groupIndex].length - 1);
-    } else if (groupsLocalStorage[groupIndex] === 0) {
+    } else {
         document.getElementById("position").innerHTML = 0 +
             "/" + 0;
     }
@@ -80,6 +85,11 @@ function createGroupsDropdown() {
     }
     const groupsLocalStorage = getOrCreateGroups();
 
+    const toDelete = document.querySelectorAll(".option");
+    toDelete.forEach((option) => {
+        option.remove();
+    });
+
     for (i = 0; i < groupsLocalStorage.length; i++) {
         const groupsDropdown = document.createElement("div");
         groupsDropdown.classList.add("option");
@@ -94,6 +104,10 @@ function previousCard() {
     const groupsLocalStorage = getOrCreateGroups();
     groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index) - 1;
+
+    if (groupsLocalStorage[groupIndex].length <= 1) {
+        return;
+    }
 
     if (cardIndex < 1) {
         cardIndex = groupsLocalStorage[groupIndex].length - 1;
@@ -113,6 +127,10 @@ function nextCard() {
     groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index) + 1;
 
+    if (groupsLocalStorage[groupIndex].length <= 1) {
+        return;
+    }
+
     if (cardIndex > groupsLocalStorage[groupIndex].length - 1) {
         cardIndex = 1;
     }
@@ -131,6 +149,10 @@ function flip() {
     groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index);
     const titleFront = document.getElementById("titleFront");
+
+    if (groupsLocalStorage[groupIndex].length <= 1) {
+        return;
+    }
 
     if (titleFront.innerHTML === "Vorderseite") {
         document.getElementById("titleFront").innerHTML = "Rückseite";
@@ -176,28 +198,17 @@ function deleteCard() {
 // groups
 // eslint-disable-next-line no-unused-vars
 function fillGroups() {
-    const toDelete = document.querySelectorAll(".groupId");
-    toDelete.forEach((groupId) => {
-        groupId.remove();
-    });
-
     const groupsLocalStorage = getOrCreateGroups();
+    groupIndex = getGroupIndex();
+
     if (groupsLocalStorage.length !== 0) {
         document.getElementById("collectionContainer").innerHTML = "";
+        document.getElementById("groupTitle").innerHTML = groupsLocalStorage[groupIndex][0];
+        document.getElementById("groupInfo").innerHTML =
+            "Anzahl Karteikarten: " + (groupsLocalStorage[groupIndex].length - 1);
     }
 
-    for (i = 0; i < groupsLocalStorage.length; i++) {
-        const groupsButton = document.createElement("button");
-        groupsButton.innerHTML = groupsLocalStorage[i][0];
-        groupsButton.classList.add("groupId");
-        groupsButton.onclick = function() {
-            // window.location.href = "indexCards.html";
-            console.log(groupsButton.innerHTML);
-            console.log(groupsButton.id);
-        };
-
-        document.body.appendChild(groupsButton);
-    }
+    createGroupsDropdown();
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -207,12 +218,8 @@ function addGroup() {
     document.getElementById("collectionName").value = "";
     if (groupName !== "") {
         groupsLocalStorage.push([groupName]);
-        console.log(groupsLocalStorage);
-
         localStorage.groups = JSON.stringify(groupsLocalStorage);
-
-        console.log(localStorage.groups);
-        console.log(JSON.parse(localStorage.groups));
+        localStorage.groupSelected = groupName;
 
         document.getElementById("collectionContainer").innerHTML = "";
 
@@ -237,7 +244,7 @@ function getOrCreateGroupSelected() {
     } else {
         groupSelected = localStorage.groupSelected;
     }
-    return groupSelected.substring(0, groupSelected.length - 1);
+    return groupSelected;
 }
 
 function getGroupIndex() {
@@ -250,6 +257,20 @@ function getGroupIndex() {
             return i;
         }
     }
+}
+
+function getCardIndex() {
+    const groupsLocalStorage = getOrCreateGroups();
+
+    const groupIndex = getGroupIndex();
+    if (localStorage.cardIndex == undefined) {
+        cardIndex = groupsLocalStorage[groupIndex].length - 1;
+    } else if (localStorage.cardIndex <= groupsLocalStorage[groupIndex].length - 1) {
+        cardIndex = localStorage.cardIndex;
+    } else {
+        cardIndex = groupsLocalStorage[groupIndex].length - 1;
+    }
+    return cardIndex;
 }
 
 // dropdown menu
@@ -272,14 +293,20 @@ function toggleMenuDisplay(e) {
 function handleOptionSelected(e) {
     toggleClass(e.target.parentNode, "hide");
 
-    const newValue = e.target.textContent + " ";
+    const newValue = e.target.textContent;
     const titleElem = document.querySelector(".dropdown .title");
 
     titleElem.textContent = newValue;
 
     localStorage.groupSelected = newValue;
 
-    fillFlashcards();
+    if (document.getElementById("front") != null) {
+        fillFlashcards();
+    }
+
+    if (document.getElementById("groupTitle") != null) {
+        fillGroups();
+    }
 }
 
 

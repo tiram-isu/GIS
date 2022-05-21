@@ -17,6 +17,17 @@ html {
     font-family: 'Open Sans', sans-serif;
 }
 
+
+h1 {
+    text-align: center;
+    margin-top: 30px;
+}
+
+h2 {
+    text-align: center;
+    margin-top: 30px;
+}
+
 #navigation {
     overflow: hidden;
     justify-content: center;
@@ -43,6 +54,10 @@ html {
     vertical-align: middle;
 }
 
+body {
+    padding-left: 20px;
+}
+
 a:hover#nav-element {
     background-color: var(--accent);
 }
@@ -67,16 +82,13 @@ div#flashcardContainer {
     padding-bottom: 5px;
 }
 
-div#formContainer {
-    margin-left: auto;
-    margin-right: auto;
-}
-
 form#cardForm {
     text-align: center;
 }
 
-button, #submit, .dropdown {
+button,
+#submit,
+.dropdown {
     background-color: var(--accent);
     border: none;
     color: var(--text);
@@ -87,12 +99,13 @@ button, #submit, .dropdown {
     font-size: 16px;
 }
 
-#submit:hover, button:hover {
+#submit:hover,
+button:hover {
     background-color: var(--light-grey);
 }
 
-#previous { 
-    width: 150px; 
+#previous {
+    width: 150px;
     height: 40px;
     position: fixed;
     left: 19vw;
@@ -100,7 +113,7 @@ button, #submit, .dropdown {
 }
 
 #next {
-    width: 150px; 
+    width: 150px;
     height: 40px;
     position: fixed;
     left: 81vw;
@@ -108,7 +121,7 @@ button, #submit, .dropdown {
 }
 
 #flip {
-    width: 150px; 
+    width: 150px;
     height: 40px;
     position: fixed;
     left: 50vw;
@@ -122,7 +135,7 @@ button, #submit, .dropdown {
 }
 
 #delete {
-    width: 150px; 
+    width: 150px;
     height: 40px;
     position: fixed;
     left: 50vw;
@@ -133,17 +146,23 @@ button, #submit, .dropdown {
     max-height: 0 !important;
 }
 
-.dropdown .menu{
-	transition: max-height .5s ease-out;
-	max-height: 20em;
-	overflow: hidden;
+.dropdown .menu {
+    transition: max-height .5s ease-out;
+    max-height: 20em;
+    overflow: hidden;
 }
 
 
-.dropdown .menu .option:hover{
-	background-color: var(--light-grey);
+.dropdown .menu .option:hover {
+    background-color: var(--light-grey);
 }
 
-.pointerCursor:hover{
-	cursor: pointer;
+.pointerCursor:hover {
+    cursor: pointer;
+}
+
+.groups {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

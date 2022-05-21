@@ -17,17 +17,29 @@
 </nav>
 
 <body onLoad="fillGroups()">
-    <br>
     <h1>Sammlungen</h1>
 
-    <div id="collectionContainer">Keine Sammlungen vorhanden
-    </div>
+     <div class="dropdown">
+		<div class="title pointerCursor">Sammlungen</div>
+		<div class="menu pointerCursor hide" id="dropdown-content"></div>
+	</div>
 
-    <input id="collectionName" type="text" placeholder="Name Sammlung">
+    <div class="groups" id="collectionContainer">Keine Sammlungen vorhanden</div>
+
+    <div class="groups">
+        <h2 id="groupTitle"></h2>
+        <div id="groupInfo"></div>
+    </div>
 
     <br>
 
-    <div id="formContainer">
+    <h2>Neue Sammlung erstellen</h2>
+
+    <div class="groups"><input id="collectionName" type="text" placeholder="Name Sammlung"></div>
+
+    <br>
+
+    <div class="groups" id="formContainer">
         <input id="submit" type="button" value="Sammlung erstellen" onClick="addGroup()">
         <br>
     </div>
