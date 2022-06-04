@@ -4,12 +4,16 @@
   "description": "",
   "main": "text.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./assets/server.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.13.0",
     "eslint-config-google": "^0.14.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.5"
   }
 }

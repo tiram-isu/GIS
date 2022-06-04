@@ -229,13 +229,34 @@ function addGroup() {
 
 function getOrCreateGroups() {
     let groupsLocalStorage;
+    // const test = getJSON("http://localhost:3000/groups");
     if (localStorage.getItem("groups") == undefined) {
         groupsLocalStorage = [];
     } else {
         groupsLocalStorage = JSON.parse(localStorage.groups);
+        sendJSONStringWithPOST("http://localhost:3000/groups",
+            JSON.stringify(groupsLocalStorage));
     }
     return groupsLocalStorage;
 }
+
+// async function requestTextWithGET(url) {
+//     const response = await fetch(url);
+//     console.log("response: " + response);
+//     const text = await response.text();
+//     console.log("text: " + text);
+//     return text;
+// }
+
+// async function getJSON(url) {
+//     const settings = { method: "Get" };
+//     fetch(url, settings)
+//         .then((res) => res.json())
+//         .then((json) => {
+//             console.log("json: " + json);
+//             return json;
+//         });
+// }
 
 function getOrCreateGroupSelected() {
     let groupSelected;
@@ -243,6 +264,8 @@ function getOrCreateGroupSelected() {
         groupSelected = "";
     } else {
         groupSelected = localStorage.groupSelected;
+        sendJSONStringWithPOST("http://localhost:3000/groupSelected",
+            JSON.stringify(groupSelected));
     }
     return groupSelected;
 }
@@ -253,6 +276,7 @@ function getGroupIndex() {
 
     for (i = 0; i < groupsLocalStorage.length; i++) {
         if (groupsLocalStorage[i][0] == groupSelected) {
+            sendJSONStringWithPOST("http://localhost:3000/groupIndex", JSON.stringify(i));
             localStorage.groupIndex = i;
             return i;
         }
@@ -270,6 +294,7 @@ function getCardIndex() {
     } else {
         cardIndex = groupsLocalStorage[groupIndex].length - 1;
     }
+    sendJSONStringWithPOST("http://localhost:3000/cardIndex", JSON.stringify(cardIndex));
     return cardIndex;
 }
 
@@ -307,6 +332,13 @@ function handleOptionSelected(e) {
     if (document.getElementById("groupTitle") != null) {
         fillGroups();
     }
+}
+
+async function sendJSONStringWithPOST(url, jsonString) {
+    const response = await fetch(url, {
+        method: "post",
+        body: jsonString
+    });
 }
 
 
