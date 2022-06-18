@@ -1,66 +1,84 @@
+/* eslint-disable indent */
 const http = require("http");
-// const fetch = import("node-fetch");
+const mongodb = require("mongodb");
 
 const hostname = "127.0.0.1"; // localhost
 const port = 3000;
+const url = "mongodb://localhost:27017"; // für lokale MongoDB
+const mongoClient = new mongodb.MongoClient(url);
 
-const server = http.createServer((request, response) => {
+async function startServer() {
+    // connect to database
+    await mongoClient.connect();
+    // listen for requests
+    server.listen(port, hostname, () => {
+        console.log(`Server running at http://${hostname}:${port}/`);
+    });
+}
+
+const server = http.createServer(async (request, response) => {
     response.statusCode = 200;
-    response.setHeader("Content-Type", "application/json");
-    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Origin", "*"); // bei CORS Fehler
     const url = new URL(request.url || "", `http://${request.headers.host}`);
 
     switch (url.pathname) {
-    case "/":
-        console.log("Basic Path");
-        break;
-
-    case "/groups":
-        if (request.method === "POST") {
-            request.on("data", (data) => {
-                groupsLocalStorage = data;
-            });
-            request.on("end", () => {
-                console.log("groupsLocalStorage: " + JSON.parse(groupsLocalStorage));
-            });
+        case "/student": {
+            const studentCollection = mongoClient.db("flashcards").collection("student");
+            switch (request.method) {
+                case "GET":
+                    let result;
+                    if (url.searchParams.get("studentNr")) {
+                        result = await studentCollection.findOne({
+                            studentNr: Number(url.searchParams.get("studentNr"))
+                            // von String zu Zahl konvertieren
+                        });
+                        console.log("result: " + result);
+                    } else {
+                        result = await studentCollection.find({});
+                    }
+                    response.setHeader("Content-Type", "application/json");
+                    response.write(JSON.stringify(result));
+                    break;
+                case "POST":
+                    let jsonString = "";
+                    request.on("data", (data) => {
+                        jsonString += data;
+                    });
+                    request.on("end", async () => {
+                        studentCollection.insertOne(JSON.parse(jsonString));
+                    });
+                    break;
+            }
+            break;
         }
-        break;
-
-    case "/groupSelected":
-        if (request.method === "POST") {
-            request.on("data", (data) => {
-                groupSelected = data;
-            });
-            request.on("end", () => {
-                console.log("groupSelected: " + JSON.parse(groupSelected));
-            });
+        case "/clearAll": {
+            await mongoClient.db("flashcards").collection("student").drop();
+            break;
         }
-        break;
-
-    case "/groupIndex":
-        if (request.method === "POST") {
-            request.on("data", (data) => {
-                groupIndex = data;
-            });
-            request.on("end", () => {
-                console.log("groupIndex: " + JSON.parse(groupIndex));
-            });
+        case "/groups": {
+            switch (request.method) {
+                case "POST":
+                    let jsonString = "";
+                    request.on("data", (data) => {
+                        jsonString += data;
+                    });
+                    request.on("end", async () => {
+                        await mongoClient.db("flashcards").
+                            createCollection(jsonString, function(err) {
+                                if (err && err.codeName == "NamespaceExists") {
+                                    console.log("Gruppenname schon vorhaden: " + jsonString);
+                                    return;
+                                }
+                            });
+                    });
+                    break;
+            }
         }
-        break;
-
-    case "/cardIndex":
-        if (request.method === "POST") {
-            request.on("data", (data) => {
-                cardIndex = data;
-            });
-            request.on("end", () => {
-                console.log("cardIndex: " + JSON.parse(cardIndex));
-            });
-        }
-        break;
+        default:
+            response.statusCode = 404;
     }
-});
+    response.end();
+}
+);
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
+startServer();

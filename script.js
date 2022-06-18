@@ -229,13 +229,12 @@ function addGroup() {
 
 function getOrCreateGroups() {
     let groupsLocalStorage;
-    // const test = getJSON("http://localhost:3000/groups");
     if (localStorage.getItem("groups") == undefined) {
         groupsLocalStorage = [];
     } else {
         groupsLocalStorage = JSON.parse(localStorage.groups);
-        sendJSONStringWithPOST("http://localhost:3000/groups",
-            JSON.stringify(groupsLocalStorage));
+        // sendJSONStringWithPOST("http://localhost:3000/groups",
+        // JSON.stringify(groupsLocalStorage));
     }
     return groupsLocalStorage;
 }
@@ -264,8 +263,8 @@ function getOrCreateGroupSelected() {
         groupSelected = "";
     } else {
         groupSelected = localStorage.groupSelected;
-        sendJSONStringWithPOST("http://localhost:3000/groupSelected",
-            JSON.stringify(groupSelected));
+        // sendJSONStringWithPOST("http://localhost:3000/groupSelected",
+        //     JSON.stringify(groupSelected));
     }
     return groupSelected;
 }
@@ -276,7 +275,7 @@ function getGroupIndex() {
 
     for (i = 0; i < groupsLocalStorage.length; i++) {
         if (groupsLocalStorage[i][0] == groupSelected) {
-            sendJSONStringWithPOST("http://localhost:3000/groupIndex", JSON.stringify(i));
+            // sendJSONStringWithPOST("http://localhost:3000/groupIndex", JSON.stringify(i));
             localStorage.groupIndex = i;
             return i;
         }
@@ -294,7 +293,7 @@ function getCardIndex() {
     } else {
         cardIndex = groupsLocalStorage[groupIndex].length - 1;
     }
-    sendJSONStringWithPOST("http://localhost:3000/cardIndex", JSON.stringify(cardIndex));
+    // sendJSONStringWithPOST("http://localhost:3000/cardIndex", JSON.stringify(cardIndex));
     return cardIndex;
 }
 
@@ -334,11 +333,42 @@ function handleOptionSelected(e) {
     }
 }
 
-async function sendJSONStringWithPOST(url, jsonString) {
+// async function sendJSONStringWithPOST(url, jsonString) {
+//     const response = await fetch(url, {
+//         method: "post",
+//         body: jsonString
+//     });
+// }
+
+async function add(url, jsonString) {
     const response = await fetch(url, {
         method: "post",
         body: jsonString
     });
 }
 
+async function getStudent(studentNr) {
+    const response = await fetch(
+        `http://localhost:3000/student?studentNr=${studentNr}`
+    );
+    const text = await response.text();
+    console.log(JSON.parse(text));
+}
 
+async function test() {
+    await add(
+        "http://localhost:3000/student",
+        JSON.stringify({
+            studentNr: 111111,
+            firstName: "Adam",
+            lastName: "Anfang",
+            semester: 1,
+            faculty: "DM",
+            course: "MKB"
+        })
+    );
+    await add("http://localhost:3000/groups", JSON.stringify("test5"));
+    await getStudent(111111);
+}
+
+test();
