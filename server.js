@@ -19,25 +19,25 @@ async function startServer() {
 const server = http.createServer(async (request, response) => {
     response.statusCode = 200;
     response.setHeader("Access-Control-Allow-Origin", "*"); // bei CORS Fehler
+    response.setHeader("Access-Control-Allow-Credentials", true);
     const url = new URL(request.url || "", `http://${request.headers.host}`);
 
     switch (url.pathname) {
-        case "/student": {
-            const studentCollection = mongoClient.db("flashcards").collection("student");
+        case "/cards": {
+            const groupName = url.searchParams.get("groupName");
+            const cardCollection = mongoClient.db("flashcards")
+                .collection(JSON.stringify(groupName));
             switch (request.method) {
                 case "GET":
                     let result;
-                    if (url.searchParams.get("studentNr")) {
-                        result = await studentCollection.findOne({
-                            studentNr: Number(url.searchParams.get("studentNr"))
-                            // von String zu Zahl konvertieren
-                        });
-                        console.log("result: " + result);
-                    } else {
-                        result = await studentCollection.find({});
+                    const cardPosition = await url.searchParams.get("cardPosition");
+                    console.log(cardPosition);
+                    if (!isNaN(cardPosition)) {
+                        result = await cardCollection.findOne({ cardPosition: cardPosition });
+                        response.setHeader("Content-Type", "application/json");
+                        response.write(JSON.stringify(result));
+                        console.log(result);
                     }
-                    response.setHeader("Content-Type", "application/json");
-                    response.write(JSON.stringify(result));
                     break;
                 case "POST":
                     let jsonString = "";
@@ -45,19 +45,16 @@ const server = http.createServer(async (request, response) => {
                         jsonString += data;
                     });
                     request.on("end", async () => {
-                        studentCollection.insertOne(JSON.parse(jsonString));
+                        cardCollection.insertOne(JSON.parse(jsonString));
                     });
                     break;
             }
             break;
         }
-        case "/clearAll": {
-            await mongoClient.db("flashcards").collection("student").drop();
-            break;
-        }
         case "/groups": {
             switch (request.method) {
                 case "POST":
+                    console.log("test");
                     let jsonString = "";
                     request.on("data", (data) => {
                         jsonString += data;
@@ -66,7 +63,7 @@ const server = http.createServer(async (request, response) => {
                         await mongoClient.db("flashcards").
                             createCollection(jsonString, function(err) {
                                 if (err && err.codeName == "NamespaceExists") {
-                                    console.log("Gruppenname schon vorhaden: " + jsonString);
+                                    console.log("Gruppenname " + jsonString + " schon vorhanden.");
                                     return;
                                 }
                             });
@@ -74,8 +71,34 @@ const server = http.createServer(async (request, response) => {
                     break;
             }
         }
-        default:
-            response.statusCode = 404;
+        case "/groupLength": {
+            const cardCollection = mongoClient.db("flashcards").
+                collection(url.searchParams.get("groupName"));
+            console.log("groupName: " + url.searchParams.get("groupName"));
+            const length = await cardCollection.countDocuments();
+            response.setHeader("Content-Type", "application/json");
+            console.log("LängeServer: " + length);
+            response.write(JSON.stringify(length));
+            console.log("-------------------------------");
+            break;
+        }
+        case "/deleteCard": {
+            const groupName = url.searchParams.get("groupName");
+            const index = (url.searchParams.get("index"));
+            const cardCollection = mongoClient.db("flashcards").collection(groupName);
+            await cardCollection.findOne({ cardNumber: index });
+            const toDelete = await cardCollection.deleteOne({ cardPosition: index });
+            response.setHeader("Content-Type", "application/json");
+            console.log(toDelete);
+            break;
+        }
+        case "/getGroups": {
+            const collections = await mongoClient.db("flashcards").listCollections().toArray();
+            const names = [];
+            collections.forEach((element) => names.push(element.name));
+            response.setHeader("Content-Type", "application/json");
+            response.write(JSON.stringify(names));
+        }
     }
     response.end();
 }

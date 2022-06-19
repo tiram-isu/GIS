@@ -4,33 +4,30 @@ let cardIndex;
 let groupIndex;
 
 class Card {
-    constructor(front, back) {
+    constructor(id, position, front, back) {
+        this.id = id;
+        this.position = position;
         this.front = front;
         this.back = back;
     }
 }
 
 // eslint-disable-next-line no-unused-vars
-function addCard() {
-    const groupSelected = getOrCreateGroupSelected();
-    const groupsLocalStorage = getOrCreateGroups();
+async function addCard() {
     const inputFront = document.getElementById("newFront").value;
     const inputBack = document.getElementById("newBack").value;
-    groupIndex = getGroupIndex();
+    const groupSelected = localStorage.getItem("groupSelected");
 
-    if (groupSelected == "") {
+    if (groupSelected == "" || groupSelected == "undefined") {
         document.getElementById("error").innerHTML = "Es muss eine Sammlung ausgewählt werden.";
     } else if (inputFront != "" && inputBack != "") {
-        const newCard = new Card();
-        newCard.front = inputFront;
-        newCard.back = inputBack;
+        addCardToCollection(inputFront, inputBack, groupSelected);
 
-        groupsLocalStorage[groupIndex].push(newCard);
-        localStorage.groups = JSON.stringify(groupsLocalStorage);
-        localStorage.index = JSON.stringify(groupsLocalStorage[groupIndex].length - 1);
+        // localStorage.index = Number(localStorage.getItem("index")) + 1;
+        localStorage.index = await groupLength(JSON.stringify(groupSelected));
 
-        front.innerHTML = newCard.front;
-        back.innerHTML = newCard.back;
+        front.innerHTML = inputFront;
+        back.innerHTML = inputBack;
 
         document.getElementById("newFront").value = "";
         document.getElementById("newBack").value = "";
@@ -38,20 +35,23 @@ function addCard() {
 }
 
 // flashcards
-function fillFlashcards() {
-    if (localStorage.getItem("index") !== "undefined" &&
-        localStorage.getItem("index") !== null) {
-        const groupsLocalStorage = getOrCreateGroups();
-        groupIndex = getGroupIndex();
-        cardIndex = getCardIndex();
+async function fillFlashcards() {
+    const index = localStorage.getItem("index");
+    const groupSelected = localStorage.getItem("groupSelected");
 
-        if (groupsLocalStorage.length !== 0 && groupsLocalStorage[groupIndex].length > 1) {
-            front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
+    if (index !== "undefined" && index !== null) {
+        const length = await groupLength(JSON.stringify(groupSelected));
+
+        if (length !== 0) {
+            const card = await getCard(groupSelected, index);
+            console.log("index: " + index + "Card: " + card);
+            front.innerHTML = card.front;
         } else {
             front.innerHTML = "";
         }
 
-        fillPosition();
+        document.getElementById("titleFront").innerHTML = "Vorderseite";
+        document.getElementById("position").innerHTML = await Number(index) + 1 + "/" + length;
     }
 }
 
@@ -61,115 +61,88 @@ function flashcardsDropdown() {
     createGroupsDropdown();
 }
 
-function fillPosition() {
-    const groupsLocalStorage = getOrCreateGroups();
-    groupIndex = getGroupIndex();
-    cardIndex = JSON.parse(localStorage.index) + 1;
 
-    if (groupsLocalStorage[groupIndex].length > 1 && document.getElementById("position") != null) {
-        document.getElementById("position").innerHTML = (cardIndex - 1) +
-            "/" + (groupsLocalStorage[groupIndex].length - 1);
-    } else {
-        document.getElementById("position").innerHTML = 0 +
-            "/" + 0;
-    }
-}
-
-function createGroupsDropdown() {
+async function createGroupsDropdown() {
     const dropdownTitle = document.querySelector(".dropdown .title");
     dropdownTitle.addEventListener("click", toggleMenuDisplay);
+    const groupSelected = localStorage.getItem("groupSelected");
 
-    const groupSelected = getOrCreateGroupSelected();
     if (groupSelected != "") {
         dropdownTitle.innerHTML = groupSelected;
+        localStorage.groupSelected = groupSelected;
     }
-    const groupsLocalStorage = getOrCreateGroups();
 
     const toDelete = document.querySelectorAll(".option");
     toDelete.forEach((option) => {
         option.remove();
     });
 
-    for (i = 0; i < groupsLocalStorage.length; i++) {
+    let collections = await getGroupsFromServer();
+    collections = JSON.parse(collections);
+    console.log(collections);
+
+    for (i = 0; i < collections.length; i++) {
         const groupsDropdown = document.createElement("div");
         groupsDropdown.classList.add("option");
         groupsDropdown.addEventListener("click", handleOptionSelected);
-        groupsDropdown.innerHTML = groupsLocalStorage[i][0];
+        groupsDropdown.innerHTML = collections[i];
         document.getElementById("dropdown-content").appendChild(groupsDropdown);
     }
 }
 
 // eslint-disable-next-line no-unused-vars
-function previousCard() {
-    const groupsLocalStorage = getOrCreateGroups();
-    groupIndex = getGroupIndex();
-    cardIndex = JSON.parse(localStorage.index) - 1;
+async function previousCard() {
+    let index = Number(localStorage.getItem("index")) - 1;
+    const length = await groupLength(JSON.stringify(groupSelected));
 
-    if (groupsLocalStorage[groupIndex].length <= 1) {
-        return;
+    if (index < 0) {
+        index = length - 1;
     }
 
-    if (cardIndex < 1) {
-        cardIndex = groupsLocalStorage[groupIndex].length - 1;
+    if (index >= 0 && index < length) {
+        localStorage.index = index;
+        fillFlashcards();
     }
-
-    if (cardIndex >= 1 && cardIndex < groupsLocalStorage[groupIndex].length) {
-        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
-    }
-
-    localStorage.index = JSON.stringify(cardIndex);
-    fillPosition();
 }
 
 // eslint-disable-next-line no-unused-vars
-function nextCard() {
-    const groupsLocalStorage = getOrCreateGroups();
-    groupIndex = getGroupIndex();
-    cardIndex = JSON.parse(localStorage.index) + 1;
+async function nextCard() {
+    let index = Number(localStorage.getItem("index")) + 1;
+    const length = await groupLength(JSON.stringify(groupSelected));
+    console.log(index);
 
-    if (groupsLocalStorage[groupIndex].length <= 1) {
-        return;
+    if (index >= length) {
+        index = 0;
     }
 
-    if (cardIndex > groupsLocalStorage[groupIndex].length - 1) {
-        cardIndex = 1;
+    if (index >= 0 && index < length) {
+        localStorage.index = index;
+        fillFlashcards();
     }
-
-    if (cardIndex >= 1 && cardIndex <= groupsLocalStorage[groupIndex].length) {
-        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
-    }
-
-    localStorage.index = JSON.stringify(cardIndex);
-    fillPosition();
 }
 
 // eslint-disable-next-line no-unused-vars
-function flip() {
-    const groupsLocalStorage = getOrCreateGroups();
-    groupIndex = getGroupIndex();
-    cardIndex = JSON.parse(localStorage.index);
+async function flip() {
+    const index = Number(localStorage.getItem("index"));
     const titleFront = document.getElementById("titleFront");
-
-    if (groupsLocalStorage[groupIndex].length <= 1) {
-        return;
-    }
+    const card = await getCard(groupSelected, index);
 
     if (titleFront.innerHTML === "Vorderseite") {
         document.getElementById("titleFront").innerHTML = "Rückseite";
-        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].back;
+        front.innerHTML = card.back;
         return;
     }
 
     if (titleFront.innerHTML === "Rückseite") {
         document.getElementById("titleFront").innerHTML = "Vorderseite";
-        front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
+        front.innerHTML = card.front;
         return;
     }
 }
 
 // eslint-disable-next-line no-unused-vars
 function deleteCard() {
-    const groupsLocalStorage = getOrCreateGroups();
+    const groupsLocalStorage = getGroups();
     groupIndex = getGroupIndex();
     cardIndex = JSON.parse(localStorage.index);
 
@@ -197,65 +170,28 @@ function deleteCard() {
 
 // groups
 // eslint-disable-next-line no-unused-vars
-function fillGroups() {
-    const groupsLocalStorage = getOrCreateGroups();
-    groupIndex = getGroupIndex();
-
-    if (groupsLocalStorage.length !== 0) {
-        document.getElementById("collectionContainer").innerHTML = "";
-        document.getElementById("groupTitle").innerHTML = groupsLocalStorage[groupIndex][0];
-        document.getElementById("groupInfo").innerHTML =
-            "Anzahl Karteikarten: " + (groupsLocalStorage[groupIndex].length - 1);
-    }
+async function fillGroups() {
+    const groupSelected = localStorage.getItem("groupSelected");
+    document.getElementById("collectionContainer").innerHTML = "";
+    document.getElementById("groupTitle").innerHTML = groupSelected;
+    document.getElementById("groupInfo").innerHTML =
+        "Anzahl Karteikarten: " + await groupLength(JSON.stringify(groupSelected));
 
     createGroupsDropdown();
 }
 
 // eslint-disable-next-line no-unused-vars
 function addGroup() {
-    const groupsLocalStorage = getOrCreateGroups();
     groupName = document.getElementById("collectionName").value;
     document.getElementById("collectionName").value = "";
     if (groupName !== "") {
-        groupsLocalStorage.push([groupName]);
-        localStorage.groups = JSON.stringify(groupsLocalStorage);
-        localStorage.groupSelected = groupName;
+        addGroupToCollection(groupName);
 
         document.getElementById("collectionContainer").innerHTML = "";
 
-        fillGroups();
+        // fillGroups();
     }
 }
-
-function getOrCreateGroups() {
-    let groupsLocalStorage;
-    if (localStorage.getItem("groups") == undefined) {
-        groupsLocalStorage = [];
-    } else {
-        groupsLocalStorage = JSON.parse(localStorage.groups);
-        // sendJSONStringWithPOST("http://localhost:3000/groups",
-        // JSON.stringify(groupsLocalStorage));
-    }
-    return groupsLocalStorage;
-}
-
-// async function requestTextWithGET(url) {
-//     const response = await fetch(url);
-//     console.log("response: " + response);
-//     const text = await response.text();
-//     console.log("text: " + text);
-//     return text;
-// }
-
-// async function getJSON(url) {
-//     const settings = { method: "Get" };
-//     fetch(url, settings)
-//         .then((res) => res.json())
-//         .then((json) => {
-//             console.log("json: " + json);
-//             return json;
-//         });
-// }
 
 function getOrCreateGroupSelected() {
     let groupSelected;
@@ -263,38 +199,20 @@ function getOrCreateGroupSelected() {
         groupSelected = "";
     } else {
         groupSelected = localStorage.groupSelected;
-        // sendJSONStringWithPOST("http://localhost:3000/groupSelected",
-        //     JSON.stringify(groupSelected));
     }
     return groupSelected;
 }
 
 function getGroupIndex() {
     const groupSelected = getOrCreateGroupSelected();
-    const groupsLocalStorage = getOrCreateGroups();
+    const groupsLocalStorage = getGroups();
 
     for (i = 0; i < groupsLocalStorage.length; i++) {
         if (groupsLocalStorage[i][0] == groupSelected) {
-            // sendJSONStringWithPOST("http://localhost:3000/groupIndex", JSON.stringify(i));
             localStorage.groupIndex = i;
             return i;
         }
     }
-}
-
-function getCardIndex() {
-    const groupsLocalStorage = getOrCreateGroups();
-
-    const groupIndex = getGroupIndex();
-    if (localStorage.cardIndex == undefined) {
-        cardIndex = groupsLocalStorage[groupIndex].length - 1;
-    } else if (localStorage.cardIndex <= groupsLocalStorage[groupIndex].length - 1) {
-        cardIndex = localStorage.cardIndex;
-    } else {
-        cardIndex = groupsLocalStorage[groupIndex].length - 1;
-    }
-    // sendJSONStringWithPOST("http://localhost:3000/cardIndex", JSON.stringify(cardIndex));
-    return cardIndex;
 }
 
 // dropdown menu
@@ -333,42 +251,80 @@ function handleOptionSelected(e) {
     }
 }
 
-// async function sendJSONStringWithPOST(url, jsonString) {
-//     const response = await fetch(url, {
-//         method: "post",
-//         body: jsonString
-//     });
-// }
-
 async function add(url, jsonString) {
-    const response = await fetch(url, {
+    await fetch(url, {
         method: "post",
         body: jsonString
     });
 }
 
-async function getStudent(studentNr) {
+async function getCard(groupName, cardPosition) {
     const response = await fetch(
-        `http://localhost:3000/student?studentNr=${studentNr}`
+        `http://localhost:3000/cards?groupName=${groupName}&cardPosition=${cardPosition}`
+    );
+    let text = await response.text();
+    if (text != "" && text !== "null") {
+        text = JSON.parse(text);
+        text = Object.values(text);
+        console.log(new Card(text[0], text[1], text[2], text[3]));
+        return new Card(text[0], text[1], text[2], text[3]);
+    }
+}
+
+async function groupLength(groupName) {
+    const response = await fetch(
+        `http://localhost:3000/groupLength?groupName=${groupName}`
     );
     const text = await response.text();
-    console.log(JSON.parse(text));
+    console.log("Länge: " + JSON.parse(text));
+
+    return text;
+}
+
+async function addCardToCollection(front, back, groupName) {
+    const length = await groupLength(JSON.stringify(groupName));
+    console.log("Length: " + length + "Front: " + front + "Back: " + back);
+    await add(
+        `http://localhost:3000/cards?groupName=${groupName}`,
+        JSON.stringify({
+            cardPosition: length,
+            front: front,
+            back: back
+        })
+    );
+}
+
+async function deleteCardFromCollection(index, groupName) {
+    await fetch(`http://localhost:3000/deleteCard?index=${index}
+    &groupName=${JSON.stringify(groupName)}`);
+}
+
+async function addGroupToCollection(groupName) {
+    await addCardToCollection("toDelete", "toDelete", groupName);
+    await deleteCardFromCollection(0, groupName);
+}
+
+async function getGroupsFromServer() {
+    const response = await fetch("http://localhost:3000/getGroups");
+    const text = await response.text();
+    console.log(text);
+    return text;
 }
 
 async function test() {
-    await add(
-        "http://localhost:3000/student",
-        JSON.stringify({
-            studentNr: 111111,
-            firstName: "Adam",
-            lastName: "Anfang",
-            semester: 1,
-            faculty: "DM",
-            course: "MKB"
-        })
-    );
-    await add("http://localhost:3000/groups", JSON.stringify("test5"));
-    await getStudent(111111);
+    // await addGroupToCollection("dd");
+    // const card = await getCard("aa", 0);
+    // console.log(card);
+    // await deleteCardFromDatabase(0, JSON.stringify("test2"));
+    // await addCardToCollection("front", "back", "test");
+    // await groupLength(JSON.stringify("test"));
+    // await addCardToCollection("front", "back", "aua");
+    // await groupLength(JSON.stringify("aua"));
+    // await addGroupToCollection("test5");
+    // await fetch("http://localhost:3000/deleteAllCards?groupName=\"deleteAll\"");
+    // await getCard("test", 0);
+    // console.log(await getCard("test", 0));
+    await getGroupsFromServer();
 }
 
 test();
