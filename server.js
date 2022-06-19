@@ -25,8 +25,9 @@ const server = http.createServer(async (request, response) => {
     switch (url.pathname) {
         case "/cards": {
             const groupName = url.searchParams.get("groupName");
+            console.log("cards: " + groupName);
             const cardCollection = mongoClient.db("flashcards")
-                .collection(JSON.stringify(groupName));
+                .collection(groupName);
             switch (request.method) {
                 case "GET":
                     let result;
@@ -40,6 +41,7 @@ const server = http.createServer(async (request, response) => {
                     }
                     break;
                 case "POST":
+                    console.log("test addCard()");
                     let jsonString = "";
                     request.on("data", (data) => {
                         jsonString += data;
@@ -51,30 +53,27 @@ const server = http.createServer(async (request, response) => {
             }
             break;
         }
-        case "/groups": {
-            switch (request.method) {
-                case "POST":
-                    console.log("test");
-                    let jsonString = "";
-                    request.on("data", (data) => {
-                        jsonString += data;
+        case "/createGroup": {
+            console.log("test");
+            let jsonString = "";
+            request.on("data", (data) => {
+                jsonString += data;
+            });
+            request.on("end", async () => {
+                await mongoClient.db("flashcards").
+                    createCollection(jsonString, function(err) {
+                        if (err && err.codeName == "NamespaceExists") {
+                            console.log("Gruppenname " + jsonString + " schon vorhanden.");
+                            return;
+                        }
                     });
-                    request.on("end", async () => {
-                        await mongoClient.db("flashcards").
-                            createCollection(jsonString, function(err) {
-                                if (err && err.codeName == "NamespaceExists") {
-                                    console.log("Gruppenname " + jsonString + " schon vorhanden.");
-                                    return;
-                                }
-                            });
-                    });
-                    break;
-            }
+            });
+            break;
         }
         case "/groupLength": {
             const cardCollection = mongoClient.db("flashcards").
                 collection(url.searchParams.get("groupName"));
-            console.log("groupName: " + url.searchParams.get("groupName"));
+            console.log("groupName (groupLength): " + url.searchParams.get("groupName"));
             const length = await cardCollection.countDocuments();
             response.setHeader("Content-Type", "application/json");
             console.log("LängeServer: " + length);
@@ -84,11 +83,13 @@ const server = http.createServer(async (request, response) => {
         }
         case "/deleteCard": {
             const groupName = url.searchParams.get("groupName");
-            const index = (url.searchParams.get("index"));
             const cardCollection = mongoClient.db("flashcards").collection(groupName);
-            await cardCollection.findOne({ cardNumber: index });
+            const index = (url.searchParams.get("index"));
+            console.log("deleteCard: groupName: " + groupName + " index: " + index);
+
+            const result = await cardCollection.findOne({ cardPosition: index });
+            console.log(result);
             const toDelete = await cardCollection.deleteOne({ cardPosition: index });
-            response.setHeader("Content-Type", "application/json");
             console.log(toDelete);
             break;
         }

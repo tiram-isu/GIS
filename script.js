@@ -1,7 +1,5 @@
 const front = document.getElementById("front");
 const back = document.getElementById("back");
-let cardIndex;
-let groupIndex;
 
 class Card {
     constructor(id, position, front, back) {
@@ -17,14 +15,14 @@ async function addCard() {
     const inputFront = document.getElementById("newFront").value;
     const inputBack = document.getElementById("newBack").value;
     const groupSelected = localStorage.getItem("groupSelected");
+    console.log("groupSelected (addCard): " + groupSelected);
 
-    if (groupSelected == "" || groupSelected == "undefined") {
+    if (groupSelected == "" || groupSelected == "undefined" || groupSelected == null) {
         document.getElementById("error").innerHTML = "Es muss eine Sammlung ausgewählt werden.";
     } else if (inputFront != "" && inputBack != "") {
         addCardToCollection(inputFront, inputBack, groupSelected);
 
-        // localStorage.index = Number(localStorage.getItem("index")) + 1;
-        localStorage.index = await groupLength(JSON.stringify(groupSelected));
+        localStorage.index = await groupLength(groupSelected);
 
         front.innerHTML = inputFront;
         back.innerHTML = inputBack;
@@ -40,18 +38,19 @@ async function fillFlashcards() {
     const groupSelected = localStorage.getItem("groupSelected");
 
     if (index !== "undefined" && index !== null) {
-        const length = await groupLength(JSON.stringify(groupSelected));
+        const length = await groupLength(groupSelected);
 
-        if (length !== 0) {
+        if (length != 0) {
             const card = await getCard(groupSelected, index);
-            console.log("index: " + index + "Card: " + card);
+            console.log("index: " + index + " Card: " + card + " Length: " + length);
             front.innerHTML = card.front;
+            document.getElementById("position").innerHTML = await Number(index) + 1 + "/" + length;
         } else {
             front.innerHTML = "";
+            document.getElementById("position").innerHTML = "0/0";
         }
 
         document.getElementById("titleFront").innerHTML = "Vorderseite";
-        document.getElementById("position").innerHTML = await Number(index) + 1 + "/" + length;
     }
 }
 
@@ -67,9 +66,11 @@ async function createGroupsDropdown() {
     dropdownTitle.addEventListener("click", toggleMenuDisplay);
     const groupSelected = localStorage.getItem("groupSelected");
 
-    if (groupSelected != "") {
+    if (groupSelected != "" && groupSelected != null) {
         dropdownTitle.innerHTML = groupSelected;
         localStorage.groupSelected = groupSelected;
+    } else {
+        dropdownTitle.innerHTML = "Sammlungen";
     }
 
     const toDelete = document.querySelectorAll(".option");
@@ -92,8 +93,9 @@ async function createGroupsDropdown() {
 
 // eslint-disable-next-line no-unused-vars
 async function previousCard() {
+    const groupSelected = localStorage.getItem("groupSelected");
     let index = Number(localStorage.getItem("index")) - 1;
-    const length = await groupLength(JSON.stringify(groupSelected));
+    const length = await groupLength(groupSelected);
 
     if (index < 0) {
         index = length - 1;
@@ -107,9 +109,9 @@ async function previousCard() {
 
 // eslint-disable-next-line no-unused-vars
 async function nextCard() {
+    const groupSelected = localStorage.getItem("groupSelected");
     let index = Number(localStorage.getItem("index")) + 1;
-    const length = await groupLength(JSON.stringify(groupSelected));
-    console.log(index);
+    const length = await groupLength(groupSelected);
 
     if (index >= length) {
         index = 0;
@@ -123,6 +125,7 @@ async function nextCard() {
 
 // eslint-disable-next-line no-unused-vars
 async function flip() {
+    const groupSelected = localStorage.getItem("groupSelected");
     const index = Number(localStorage.getItem("index"));
     const titleFront = document.getElementById("titleFront");
     const card = await getCard(groupSelected, index);
@@ -141,31 +144,12 @@ async function flip() {
 }
 
 // eslint-disable-next-line no-unused-vars
-function deleteCard() {
-    const groupsLocalStorage = getGroups();
-    groupIndex = getGroupIndex();
-    cardIndex = JSON.parse(localStorage.index);
+async function deleteCard() {
+    const groupSelected = localStorage.getItem("groupSelected");
+    const index = Number(localStorage.getItem("index"));
+    await deleteCardFromCollection(index, groupSelected);
 
-    if (cardIndex >= 1) {
-        groupsLocalStorage[groupIndex].splice(cardIndex, 1);
-
-        if (cardIndex >= groupsLocalStorage[groupIndex].length) {
-            cardIndex = groupsLocalStorage[groupIndex].length - 1;
-        }
-
-        if (cardIndex >= 0 && cardIndex < groupsLocalStorage[groupIndex].length) {
-            front.innerHTML = groupsLocalStorage[groupIndex][cardIndex].front;
-        }
-
-        if (groupsLocalStorage[groupIndex].length <= 1) {
-            front.innerHTML = "";
-        }
-
-        localStorage.groups = JSON.stringify(groupsLocalStorage);
-        localStorage.index = JSON.stringify(groupsLocalStorage[groupIndex].length - 1);
-
-        fillPosition();
-    }
+    // fillCards();
 }
 
 // groups
@@ -175,7 +159,7 @@ async function fillGroups() {
     document.getElementById("collectionContainer").innerHTML = "";
     document.getElementById("groupTitle").innerHTML = groupSelected;
     document.getElementById("groupInfo").innerHTML =
-        "Anzahl Karteikarten: " + await groupLength(JSON.stringify(groupSelected));
+        "Anzahl Karteikarten: " + await groupLength(groupSelected);
 
     createGroupsDropdown();
 }
@@ -189,29 +173,7 @@ function addGroup() {
 
         document.getElementById("collectionContainer").innerHTML = "";
 
-        // fillGroups();
-    }
-}
-
-function getOrCreateGroupSelected() {
-    let groupSelected;
-    if (localStorage.getItem("groupSelected") == undefined) {
-        groupSelected = "";
-    } else {
-        groupSelected = localStorage.groupSelected;
-    }
-    return groupSelected;
-}
-
-function getGroupIndex() {
-    const groupSelected = getOrCreateGroupSelected();
-    const groupsLocalStorage = getGroups();
-
-    for (i = 0; i < groupsLocalStorage.length; i++) {
-        if (groupsLocalStorage[i][0] == groupSelected) {
-            localStorage.groupIndex = i;
-            return i;
-        }
+        fillGroups();
     }
 }
 
@@ -282,8 +244,9 @@ async function groupLength(groupName) {
 }
 
 async function addCardToCollection(front, back, groupName) {
-    const length = await groupLength(JSON.stringify(groupName));
-    console.log("Length: " + length + "Front: " + front + "Back: " + back);
+    const length = await groupLength(groupName);
+    console.log("addCardToCollection: groupName: " + groupName + " Length: " + length +
+        "Front: " + front + "Back: " + back);
     await add(
         `http://localhost:3000/cards?groupName=${groupName}`,
         JSON.stringify({
@@ -292,16 +255,13 @@ async function addCardToCollection(front, back, groupName) {
             back: back
         })
     );
+    console.log("Gruppen (addCard): " + await getGroupsFromServer());
 }
 
 async function deleteCardFromCollection(index, groupName) {
     await fetch(`http://localhost:3000/deleteCard?index=${index}
     &groupName=${JSON.stringify(groupName)}`);
-}
-
-async function addGroupToCollection(groupName) {
-    await addCardToCollection("toDelete", "toDelete", groupName);
-    await deleteCardFromCollection(0, groupName);
+    console.log("delete: groupName: " + groupName + " index: " + index);
 }
 
 async function getGroupsFromServer() {
@@ -311,20 +271,25 @@ async function getGroupsFromServer() {
     return text;
 }
 
+async function addGroupToCollection(groupName) {
+    await add("http://localhost:3000/createGroup", groupName);
+}
+
 async function test() {
     // await addGroupToCollection("dd");
     // const card = await getCard("aa", 0);
     // console.log(card);
     // await deleteCardFromDatabase(0, JSON.stringify("test2"));
     // await addCardToCollection("front", "back", "test");
-    // await groupLength(JSON.stringify("test"));
+    // await groupLength("test");
     // await addCardToCollection("front", "back", "aua");
-    // await groupLength(JSON.stringify("aua"));
+    // await groupLength("aua");
     // await addGroupToCollection("test5");
     // await fetch("http://localhost:3000/deleteAllCards?groupName=\"deleteAll\"");
     // await getCard("test", 0);
     // console.log(await getCard("test", 0));
-    await getGroupsFromServer();
+    // await getGroupsFromServer();
+    // await addGroupToCollection("please");
 }
 
 test();
