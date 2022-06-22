@@ -7,13 +7,13 @@
     <meta name="description" content="Karteikarten-Trainer" />
     <meta name="author" content="Marit Zenker" />
     <title>Karteikarten-Trainer</title>
-    <link rel="stylesheet" href="./assets/style.css">
+    <link rel="stylesheet" href="./css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="script.js" defer></script>
+    <script src="./src/script.js" defer></script>
 </head>
 
 <nav>
-    <script id="replace_with_navbar" src="navigation.js"></script>
+    <script id="replace_with_navbar" src="./src/navigation.js"></script>
 </nav>
 
 <body onLoad="fillGroups()">
@@ -42,5 +42,6 @@
     <div class="groups" id="formContainer">
         <input id="submit" type="button" value="Sammlung erstellen" onClick="addGroup()">
         <br>
+        <input id="submit" type="button" value="Sammlung löschen" onClick="deleteGroup()">
     </div>
 </body>

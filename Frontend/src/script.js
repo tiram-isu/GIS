@@ -15,7 +15,6 @@ async function addCard() {
     const inputFront = document.getElementById("newFront").value;
     const inputBack = document.getElementById("newBack").value;
     const groupSelected = localStorage.getItem("groupSelected");
-    console.log("groupSelected (addCard): " + groupSelected);
 
     if (groupSelected == "" || groupSelected == "undefined" || groupSelected == null) {
         document.getElementById("error").innerHTML = "Es muss eine Sammlung ausgewählt werden.";
@@ -34,15 +33,16 @@ async function addCard() {
 
 // flashcards
 async function fillFlashcards() {
-    const index = localStorage.getItem("index");
+    let index = localStorage.getItem("index");
     const groupSelected = localStorage.getItem("groupSelected");
 
-    if (index !== "undefined" && index !== null) {
+    if (index !== "undefined" && index !== null && groupSelected !== "") {
         const length = await groupLength(groupSelected);
-
+        if (index < 0 || index >= length) {
+            index = length - 1;
+        }
         if (length != 0) {
             const card = await getCard(groupSelected, index);
-            console.log("index: " + index + " Card: " + card + " Length: " + length);
             front.innerHTML = card.front;
             document.getElementById("position").innerHTML = await Number(index) + 1 + "/" + length;
         } else {
@@ -80,7 +80,6 @@ async function createGroupsDropdown() {
 
     let collections = await getGroupsFromServer();
     collections = JSON.parse(collections);
-    console.log(collections);
 
     for (i = 0; i < collections.length; i++) {
         const groupsDropdown = document.createElement("div");
@@ -148,8 +147,9 @@ async function deleteCard() {
     const groupSelected = localStorage.getItem("groupSelected");
     const index = Number(localStorage.getItem("index"));
     await deleteCardFromCollection(index, groupSelected);
+    localStorage.index = index - 1;
 
-    // fillCards();
+    fillFlashcards();
 }
 
 // groups
@@ -157,24 +157,40 @@ async function deleteCard() {
 async function fillGroups() {
     const groupSelected = localStorage.getItem("groupSelected");
     document.getElementById("collectionContainer").innerHTML = "";
-    document.getElementById("groupTitle").innerHTML = groupSelected;
-    document.getElementById("groupInfo").innerHTML =
-        "Anzahl Karteikarten: " + await groupLength(groupSelected);
+    if (groupSelected != "" && groupSelected != null) {
+        document.getElementById("groupTitle").innerHTML = groupSelected;
+        document.getElementById("groupInfo").innerHTML =
+            "Anzahl Karteikarten: " + await groupLength(groupSelected);
+    } else {
+        document.getElementById("groupTitle").innerHTML = "Bitte Sammlung auswählen";
+        document.getElementById("groupInfo").innerHTML = "";
+    }
 
     createGroupsDropdown();
 }
 
 // eslint-disable-next-line no-unused-vars
-function addGroup() {
+async function addGroup() {
     groupName = document.getElementById("collectionName").value;
     document.getElementById("collectionName").value = "";
     if (groupName !== "") {
         addGroupToCollection(groupName);
-
         document.getElementById("collectionContainer").innerHTML = "";
+        await groupLength();
 
         fillGroups();
     }
+}
+
+// eslint-disable-next-line no-unused-vars
+async function deleteGroup() {
+    const groupSelected = localStorage.getItem("groupSelected");
+    if (groupSelected != "" && groupSelected != null) {
+        await deleteGroupFromCollection(groupSelected);
+    }
+    localStorage.groupSelected = "";
+
+    fillGroups();
 }
 
 // dropdown menu
@@ -228,7 +244,6 @@ async function getCard(groupName, cardPosition) {
     if (text != "" && text !== "null") {
         text = JSON.parse(text);
         text = Object.values(text);
-        console.log(new Card(text[0], text[1], text[2], text[3]));
         return new Card(text[0], text[1], text[2], text[3]);
     }
 }
@@ -238,15 +253,12 @@ async function groupLength(groupName) {
         `http://localhost:3000/groupLength?groupName=${groupName}`
     );
     const text = await response.text();
-    console.log("Länge: " + JSON.parse(text));
 
     return text;
 }
 
 async function addCardToCollection(front, back, groupName) {
     const length = await groupLength(groupName);
-    console.log("addCardToCollection: groupName: " + groupName + " Length: " + length +
-        "Front: " + front + "Back: " + back);
     await add(
         `http://localhost:3000/cards?groupName=${groupName}`,
         JSON.stringify({
@@ -255,19 +267,16 @@ async function addCardToCollection(front, back, groupName) {
             back: back
         })
     );
-    console.log("Gruppen (addCard): " + await getGroupsFromServer());
 }
 
 async function deleteCardFromCollection(index, groupName) {
     await fetch(`http://localhost:3000/deleteCard?index=${index}
-    &groupName=${JSON.stringify(groupName)}`);
-    console.log("delete: groupName: " + groupName + " index: " + index);
+    &groupName=${groupName}`);
 }
 
 async function getGroupsFromServer() {
     const response = await fetch("http://localhost:3000/getGroups");
     const text = await response.text();
-    console.log(text);
     return text;
 }
 
@@ -275,21 +284,6 @@ async function addGroupToCollection(groupName) {
     await add("http://localhost:3000/createGroup", groupName);
 }
 
-async function test() {
-    // await addGroupToCollection("dd");
-    // const card = await getCard("aa", 0);
-    // console.log(card);
-    // await deleteCardFromDatabase(0, JSON.stringify("test2"));
-    // await addCardToCollection("front", "back", "test");
-    // await groupLength("test");
-    // await addCardToCollection("front", "back", "aua");
-    // await groupLength("aua");
-    // await addGroupToCollection("test5");
-    // await fetch("http://localhost:3000/deleteAllCards?groupName=\"deleteAll\"");
-    // await getCard("test", 0);
-    // console.log(await getCard("test", 0));
-    // await getGroupsFromServer();
-    // await addGroupToCollection("please");
+async function deleteGroupFromCollection(groupName) {
+    await fetch(`http://localhost:3000/deleteGroup?groupName=${groupName}`);
 }
-
-test();
