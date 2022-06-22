@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Karteikarten-Trainer" />
+    <meta name="description" content="Karteikarten" />
     <meta name="author" content="Marit Zenker" />
-    <title>Karteikarten-Trainer</title>
     <link rel="stylesheet" href="./css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet"> 
+    <title>Karteikarten</title>
     <script src="./src/script.js" defer></script>
 </head>
 
@@ -16,13 +15,30 @@
     <script id="replace_with_navbar" src="./src/navigation.js"></script>
 </nav>
 
-<body>
-    <header>
-        <h1>Karteikarten-Trainer</h1>
-    </header>
+<body onLoad="flashcardsDropdown()">
+    <h1>Karteikarten</h1>
 
-    <main>
-        <p>Dies ist ein Karteikarten-Trainer.</p>
+    <div class="dropdown">
+		<div class="title pointerCursor">Sammlungen</div>
+		<div class="menu pointerCursor hide" id="dropdown-content"></div>
+	</div>
+
+    <div id="flashcardContainer">
+        <p class="flashcardTitle" id="titleFront">Vorderseite</p>
+        <p class="flashcard" id="front"></p>
+    </div>
+
+    <div id="buttons">
+        <button id="previous" onclick="previousCard()">Vorherige Karte</button>
+        <button id="next" onclick="nextCard()">Nächste Karte</button>
+    </div>
+
+    <div id="buttons">
+        <button id="flip" onclick="flip()">Umdrehen</button>
+    </div>
+
+    <p id="position"></p>
+
+    <button id="delete" onclick="deleteCard()">Karte löschen</button>
+
 </body>
-
-</html>

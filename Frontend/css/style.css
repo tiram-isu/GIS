@@ -166,3 +166,7 @@ button:hover {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+.groupButton {
+    width: 180px;
+}
