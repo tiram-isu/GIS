@@ -28,6 +28,8 @@ async function addCard() {
 
         document.getElementById("newFront").value = "";
         document.getElementById("newBack").value = "";
+
+        document.getElementById("error").innerHTML = "";
     }
 }
 
